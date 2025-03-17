@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, FileField, SubmitField
 from wtforms.validators import InputRequired
-from flask_wtf.file import FileAllowed
+from flask_wtf.file import FileAllowed, FileRequired
 
 
 class LoginForm(FlaskForm):
@@ -9,8 +9,4 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[InputRequired()])
 
 class UploadForm(FlaskForm):
-    file = FileField('Upload Image', validators=[
-        InputRequired(), 
-        FileAllowed(['jpg', 'png'], 'Only JPG and PNG images are allowed!')
-    ])
-    submit = SubmitField('Upload')
+    file = FileField('Upload Image', validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Only JPG and PNG images are allowed!')])

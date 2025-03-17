@@ -18,3 +18,23 @@ body {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
 }
+
+/* New styles for image grid */
+.image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Automatically fill columns with a minimum of 200px */
+    gap: 20px;  /* Space between images */
+    padding: 20px;
+}
+
+.image-item img {
+    width: 100%;  /* Make images fill the container */
+    height: auto;
+    border-radius: 8px;  /* Optional: Add rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Optional: Add a subtle shadow */
+    transition: transform 0.3s ease-in-out;  /* Add a transition effect for hover */
+}
+
+.image-item img:hover {
+    transform: scale(1.05);  /* Slightly zoom in the image on hover */
+}
