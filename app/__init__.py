@@ -3,6 +3,7 @@ from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from .config import Config
 from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash
 # import flask migrate here
 
 app = Flask(__name__)
