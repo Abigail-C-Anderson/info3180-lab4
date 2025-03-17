@@ -7,6 +7,12 @@ from app.models import UserProfile
 from app.forms import LoginForm, UploadForm
 from werkzeug.security import check_password_hash
 
+
+ALLOWED_EXTENSIONS = {'png', 'jpg'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 ###
 # Routing for your application.
 ###
@@ -20,10 +26,11 @@ def home():
 @app.route('/about/')
 def about():
     """Render the website's about page."""
-    return render_template('about.html', name="Mary Jane")
+    return render_template('about.html', name="Abigail Anderson")
 
 
 @app.route('/upload', methods=['POST', 'GET'])
+@login_required
 def upload():
     # Instantiate your form class
     form = UploadForm()
@@ -32,46 +39,16 @@ def upload():
     if form.validate_on_submit():
         # Get file data and save to your uploads folder
         file = form.file.data
-
-        if file:
-            # Secure the filename
+        if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file_path = os.path.join('uploads', filename)  # Define the folder where files will be saved
-
-            # Save the file
             file.save(file_path)
             
-            flash('File Saved', 'success')
+            flash('File uploaded successfully!', 'success')
             return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
-
+        else:
+            flash('Invalid file type. Only PNG and JPG are allowed.', 'danger')
     return render_template('upload.html', form=form)
-
-@app.route('/create_user', methods=['POST'])
-def create_user():
-    # Assuming you're sending form data
-    username = request.form['username']
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    password = request.form['password']  # The plaintext password from the form
-
-    # Hash the password before storing it in the database
-    hashed_password = generate_password_hash(password)
-
-    # Create a new UserProfile object
-    new_user = UserProfile(
-        username=username,
-        first_name=first_name,
-        last_name=last_name,
-        password=hashed_password
-    )
-
-    # Add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
-
-    flash('User created successfully!', 'success')
-
-    return redirect(url_for('home'))  # Redirect to another page, like a login or homepage
 
 
 @app.route('/login', methods=['POST', 'GET'])
