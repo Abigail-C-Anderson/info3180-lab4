@@ -4,7 +4,7 @@ from flask import render_template, request, redirect, url_for, flash, session, a
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from app.models import UserProfile
-from app.forms import LoginForm
+from app.forms import LoginForm, UploadForm
 from werkzeug.security import check_password_hash
 
 ###
@@ -26,15 +26,52 @@ def about():
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
     # Instantiate your form class
+    form = UploadForm()
 
     # Validate file upload on submit
     if form.validate_on_submit():
         # Get file data and save to your uploads folder
+        file = form.file.data
 
-        flash('File Saved', 'success')
-        return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
+        if file:
+            # Secure the filename
+            filename = secure_filename(file.filename)
+            file_path = os.path.join('uploads', filename)  # Define the folder where files will be saved
 
-    return render_template('upload.html')
+            # Save the file
+            file.save(file_path)
+            
+            flash('File Saved', 'success')
+            return redirect(url_for('home')) # Update this to redirect the user to a route that displays all uploaded image files
+
+    return render_template('upload.html', form=form)
+
+@app.route('/create_user', methods=['POST'])
+def create_user():
+    # Assuming you're sending form data
+    username = request.form['username']
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    password = request.form['password']  # The plaintext password from the form
+
+    # Hash the password before storing it in the database
+    hashed_password = generate_password_hash(password)
+
+    # Create a new UserProfile object
+    new_user = UserProfile(
+        username=username,
+        first_name=first_name,
+        last_name=last_name,
+        password=hashed_password
+    )
+
+    # Add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
+
+    flash('User created successfully!', 'success')
+
+    return redirect(url_for('home'))  # Redirect to another page, like a login or homepage
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -47,7 +84,7 @@ def login():
         username = form.username.data
         password = form.password.data
 
-        user = UserProfile.query.filter_by(username=username).first()
+        user = db.session.execute(db.select(UserProfile).filter_by(username = username)).scalar_one_or_none()
         # Get the username and password values from the form.
 
         # Using your model, query database for a user based on the username
@@ -63,8 +100,8 @@ def login():
 
         # Remember to flash a message to the user
             return redirect(url_for("upload"))  # The user should be redirected to the upload form instead
-    
-        flash('Login failed. Check your username and/or password.', 'danger')
+        else:
+            flash('Login failed. Check your username and/or password.', 'danger')
 
     return render_template("login.html", form=form)
 
